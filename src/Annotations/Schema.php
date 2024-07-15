@@ -199,6 +199,12 @@ class Schema extends AbstractAnnotation
     public $allOf;
 
     /**
+     * An instance validates successfully against this property if it validates successfully against one schema defined by this property's value.
+     * @var Schema[]
+     */
+    public $anyOf;
+
+    /**
      * http://json-schema.org/latest/json-schema-validation.html#anchor64
      * @var bool|object
      */
