@@ -11,25 +11,29 @@ use Doctrine\Common\Annotations\DocParser;
 use Exception;
 
 // Load all whitelisted annotations
-AnnotationRegistry::registerLoader(function ($class) {
+spl_autoload_register(static function ($class) {
     if (Analyser::$whitelist === false) {
         $whitelist = ['Swagger\Annotations\\'];
     } else {
         $whitelist = Analyser::$whitelist;
     }
+
     foreach ($whitelist as $namespace) {
-        if (strtolower(substr($class, 0, strlen($namespace))) === strtolower($namespace)) {
+        if (stripos($class, strtolower($namespace)) === 0) {
             $loaded = class_exists($class);
-            if (!$loaded && $namespace === 'Swagger\Annotations\\') {
-                if (in_array(strtolower(substr($class, 20)), ['model', 'resource', 'api'])) { // Detected an 1.x annotation?
-                    throw new Exception('The annotation @SWG\\' . substr($class, 20) . '() is deprecated. Found in ' . Analyser::$context . "\nFor more information read the migration guide: https://github.com/zircote/swagger-php/blob/master/docs/Migrating-to-v2.md");
-                }
+            if (!$loaded && $namespace === 'Swagger\Annotations\\' && in_array(strtolower(substr($class, 20)), ['model', 'resource', 'api'])) { // Detected an 1.x annotation?
+                throw new Exception('The annotation @SWG\\'.substr($class, 20).'() is deprecated. Found in '.Analyser::$context."\nFor more information read the migration guide: https://github.com/zircote/swagger-php/blob/master/docs/Migrating-to-v2.md");
             }
+
             return $loaded;
         }
     }
     return false;
 });
+
+if (method_exists(AnnotationRegistry::class, 'registerLoader')) {
+    AnnotationRegistry::registerLoader('class_exists');
+}
 
 /**
  * Extract swagger-php annotations from a [PHPDoc](http://en.wikipedia.org/wiki/PHPDoc) using Doctrine's DocParser.
